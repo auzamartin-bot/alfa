@@ -28,4 +28,3 @@ async function main() {
 }
 main().catch(function(e) { console.error('[alfa] fatal:', e.message); process.exit(1); });
 FIN
-main().catch(function(e) { console.error('[alfa] fatal:', e.message); process.exit(1); });
