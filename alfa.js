@@ -22,7 +22,7 @@ async function main() {
   setInterval(async function() {
     if (!pagina) return;
     try {
-      const est = await pagina.evaluate('String(window.__gpReady) + "|" + (window.__debug ? window.__debug.state : "sin-debug") + "|" + (window.__debug && window.__debug.mp ? window.__debug.mp.estado : "sin-mp")');
+      const est = await pagina.evaluate('String(window.__gpReady) + "|" + (window.__debug ? window.__debug.state : "sin-debug") + "|" + (window.__debug && window.__debug.mp ? window.__debug.mp.estado + "@" + (window.__debug.mp.brokerHost || "?") : "sin-mp")');
       console.log('[alfa] estado:', est);
     } catch (e) { console.log('[alfa] eval fallo:', e.message.slice(0, 80)); }
   }, 20000);
