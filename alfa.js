@@ -2,6 +2,9 @@
 const { chromium } = require('playwright');
 const URL_BASE = process.env.OL_URL || 'https://makeplay.ai/p/884bffdtkt/';
 
+// puerto de cortesía: la plataforma lo espera para ver la app viva
+try { require('http').createServer(function(req, res) { res.writeHead(200); res.end('alfa'); }).listen(process.env.PORT || 3000); } catch (e) {}
+
 async function urlJuegoActual() {
   try {
     const r = await fetch(URL_BASE);
@@ -21,6 +24,11 @@ async function main() {
   const p = await contexto.newPage();
   p.on('console', function(m) { console.log('[juego]', m.text()); });
   p.on('pageerror', function(e) { console.log('[error]', e.message); });
+  await p.goto(url, { waitUntil: 'load', timeout: 90000 });
+  console.log('[alfa] ALFA EN LINEA');
+  setInterval(function() { console.log('[alfa] vivo', new Date().toISOString()); }, 60000);
+}
+main().catch(function(e) { console.error('[alfa] fatal:', e.message); process.exit(1); });
   await p.goto(url, { waitUntil: 'load', timeout: 90000 });
   console.log('[alfa] ALFA EN LINEA');
   setInterval(function() { console.log('[alfa] vivo', new Date().toISOString()); }, 60000);
