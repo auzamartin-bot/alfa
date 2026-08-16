@@ -20,4 +20,10 @@ async function main() {
   console.log('[alfa] ALFA EN LINEA');
   setInterval(function() { console.log('[alfa] vivo'); }, 60000);
 }
+setInterval(async function() {
+    try {
+      const est = await p.evaluate('window.__debug && window.__debug.mp ? window.__debug.mp.estado + "|" + Object.keys(window.__debug.mp.peers).join(",") : "sin"');
+      console.log('[alfa] malla:', est);
+    } catch (e) { console.log('[alfa] malla: error'); }
+  }, 20000);
 main().catch(function(e) { console.error('[alfa] fatal:', e.message); process.exit(1); });
