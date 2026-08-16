@@ -1,6 +1,7 @@
 {
   "name": "alfa-old-legends",
   "version": "1.0.0",
+  "type": "commonjs",
   "scripts": {
     "start": "npx playwright install chromium chromium-headless-shell && node alfa.js"
   },
