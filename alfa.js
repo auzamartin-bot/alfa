@@ -1,4 +1,8 @@
+// ============================================================
+//  OLD LEGENDS — ALFA: el anfitrión dedicado del mundo compartido
+// ============================================================
 const { chromium } = require('playwright');
+
 const URL_BASE = process.env.OL_URL || 'https://makeplay.ai/p/884bffdtkt/';
 async function urlJuegoActual() {
   try {
@@ -9,6 +13,7 @@ async function urlJuegoActual() {
   } catch (e) { console.log('[alfa] no pude leer la versión:', e.message); }
   return URL_BASE + (URL_BASE.indexOf('?') >= 0 ? '&alfa=1' : '?alfa=1');
 }
+
 async function lanzar() {
   const browser = await chromium.launch({
     headless: true,
@@ -24,12 +29,14 @@ async function lanzar() {
   const page = await context.newPage();
   page.on('console', (m) => console.log('[juego]', m.text()));
   page.on('pageerror', (e) => console.log('[error página]', e.message));
+
   const url = await urlJuegoActual();
   console.log('[alfa] abriendo', url);
   await page.goto(url, { waitUntil: 'load', timeout: 90000 });
   await page.waitForFunction(() => window.__gpReady === true, undefined, { timeout: 90000 }).catch(() => {});
   await page.waitForFunction(() => window.__debug && window.__debug.state === 'play', undefined, { timeout: 90000 });
-  console.log('[alfa] MUNDO EN LÍNEA');
+  console.log('[alfa] MUNDO EN LÍNEA — esta instancia es el anfitrión (sala olonline)');
+
   await new Promise((_, rej) => {
     page.on('crash', () => rej(new Error('página colgada')));
     page.on('close', () => rej(new Error('página cerrada')));
@@ -37,6 +44,7 @@ async function lanzar() {
     setTimeout(() => rej(new Error('reinicio programado de memoria')), 4 * 60 * 60 * 1000);
   });
 }
+
 (async () => {
   for (;;) {
     try { await lanzar(); } catch (e) {
