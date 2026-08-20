@@ -1,5 +1,6 @@
 // Cliente MQTT-over-WebSocket para el servidor (Node). Portado de src/mp.ts.
-// Node 22 tiene WebSocket nativo y TextEncoder/Uint8Array.
+// Usa el WebSocket nativo (Node 22+) o el paquete 'ws' (Node 20 y menores).
+const WS = typeof WebSocket !== 'undefined' ? WebSocket : require('ws');
 const enc = new TextEncoder();
 const dec = new TextDecoder();
 
@@ -20,18 +21,18 @@ function mqttPublish(topic, text) {
   return mqttPacket(0x30, [(t.length >> 8) & 255, t.length & 255, ...t, ...p]);
 }
 
-// abre la conexión y llama onMsg(topic, text) por cada publicación, onReady al conectar
 function openMqtt(brokers, onMsg, onReady, onDead) {
   let ws = null;
   let intentos = 0;
   let buf = new Uint8Array(0);
   const conectar = () => {
-    try { ws = new WebSocket(brokers[intentos % brokers.length], ['mqtt']); }
+    try { ws = new WS(brokers[intentos % brokers.length], ['mqtt']); }
     catch (e) { if (onDead) onDead(); return; }
     ws.binaryType = 'arraybuffer';
-    ws.onopen = () => ws.send(mqttConnect('olg-server-' + Math.random().toString(36).slice(2, 9)));
-    ws.onmessage = (ev) => {
-      const add = new Uint8Array(ev.data);
+    const alAbrir = () => ws.send(mqttConnect('olg-server-' + Math.random().toString(36).slice(2, 9)));
+    const alMensaje = (ev) => {
+      const datos = ev && ev.data !== undefined ? ev.data : ev;
+      const add = new Uint8Array(datos);
       const joint = new Uint8Array(buf.length + add.length);
       joint.set(buf); joint.set(add, buf.length);
       buf = joint;
@@ -50,8 +51,10 @@ function openMqtt(brokers, onMsg, onReady, onDead) {
         }
       }
     };
-    ws.onerror = () => { intentos++; if (intentos < brokers.length) conectar(); else if (onDead) onDead(); };
-    ws.onclose = () => { intentos = 0; setTimeout(conectar, 3000); };
+    const alError = () => { intentos++; if (intentos < brokers.length) conectar(); else if (onDead) onDead(); };
+    const alCerrar = () => { intentos = 0; setTimeout(conectar, 3000); };
+    if (ws.on) { ws.on('open', alAbrir); ws.on('message', alMensaje); ws.on('error', alError); ws.on('close', alCerrar); }
+    else { ws.onopen = alAbrir; ws.onmessage = alMensaje; ws.onerror = alError; ws.onclose = alCerrar; }
   };
   conectar();
   return { send: (pkt) => { try { if (ws && ws.readyState === 1) ws.send(pkt); } catch (e) {} }, close: () => { try { if (ws) ws.close(); } catch (e) {} } };
