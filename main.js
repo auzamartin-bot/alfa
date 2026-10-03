@@ -55,3 +55,8 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => app.quit());
+
+  juego.on('closed', () => app.quit());
+});
+
+app.on('window-all-closed', () => app.quit());
